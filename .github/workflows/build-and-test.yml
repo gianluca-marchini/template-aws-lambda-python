@@ -27,9 +27,9 @@ jobs:
     - name: Check the code
       run: |
         ruff format ./src
-        ruff format ./test
+        ruff format ./tests
         ruff check ./src
-        ruff check ./test
+        ruff check ./tests
 
   test:
     if: github.event.pull_request.draft == false
