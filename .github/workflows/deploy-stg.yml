@@ -1,0 +1,37 @@
+name: deploy stage lambda function
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to deploy'
+        required: true
+        default: 'develop'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.branch }}
+
+      - name: Set up Python 3.13
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.13'
+
+      - name: Build the application's zip file
+        run: |
+          pip install -t dependencies -r requirements.txt
+          (cd dependencies;  zip ../aws_lambda_artifact.zip -r .)
+          (cd src; zip ../aws_lambda_artifact.zip -u lambda_function.py)
+
+      - name: Deploy the zip file to Lambda
+        run: aws lambda update-function-code --function-name $AWS_FUNCTION_NAME --zip-file fileb://./aws_lambda_artifact.zip --region $AWS_REGION
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID_LAMBDA_STG }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY_LAMBDA_STG }}
+          AWS_FUNCTION_NAME: ""
+          AWS_REGION: ""

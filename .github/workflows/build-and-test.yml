@@ -1,0 +1,56 @@
+name: Build and test the application
+
+on:
+  pull_request:
+    types: [ 'opened', 'reopened', 'synchronize', 'ready_for_review' ]
+    branches: [ '**' ]
+
+env:
+  STAGE: test
+
+jobs:
+  check-code:
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python 3.13
+      uses: actions/setup-python@v4
+      with:
+          python-version: '3.13'
+
+    - name: Install the dependencies
+      run: pip install ruff
+
+    - name: Check the code
+      run: |
+        ruff format ./src
+        ruff format ./test
+        ruff check ./src
+        ruff check ./test
+
+  test:
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python 3.13
+      uses: actions/setup-python@v4
+      with:
+          python-version: '3.13'
+
+    - name: Build the Docker container
+      run: docker compose up --build -d --remove-orphans --force-recreate --quiet-pull
+
+    - name: Wait for the script to run successfully
+      run: bash .github/scripts/example.sh
+
+    - name: Install the dependencies
+      run: pip install --upgrade -r ./dev-requirements.txt
+
+    - name: Run tests
+      run: pytest

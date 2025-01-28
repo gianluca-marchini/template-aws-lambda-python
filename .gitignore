@@ -1,0 +1,14 @@
+# Application
+/.env
+.pytest_cache/
+.ruff_cache/
+venv/
+__pycache__
+
+# Deployment
+aws_lambda_artifact.zip
+dependencies/
+
+# Editor
+.idea/
+.DS_Store
